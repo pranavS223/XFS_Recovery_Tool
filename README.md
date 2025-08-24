@@ -1,7 +1,4 @@
-# XFS_Recovery_Tool
-Recovery tool/website for xfs filesystem permanently deleted data
-
-## XFS Deleted File Recovery Tool
+# XFS Permanently Deleted File Recovery Tool
 
 A CLI tool and web application to recover permanently deleted, non-overwritten files from XFS file systems.
 Includes end-to-end AES-GCM encryption for secure upload and download of recovered files.
