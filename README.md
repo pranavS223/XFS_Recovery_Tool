@@ -38,7 +38,7 @@ pip install flask pycryptodome
 ```
 **3] Run the Flask server:**
 ```bash
-python app.py
+sudo python3 app.py
 ```
 **4] Open your browser and go to:**
 ```bash
