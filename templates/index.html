@@ -1,0 +1,279 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>XFS File Browser</title>
+    <link rel="icon" href="{{ url_for('static', filename='xfs_favicon.png') }}" type="image/png">
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: #f4f4f9;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+        }
+
+        /* Navbar */
+        .navbar {
+            background: linear-gradient(120deg, #52a6dd, #52a6dd);
+            width: 100%;
+            color: white;
+            padding: 0px 20px;
+            font-size: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: flex-start;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            position: fixed;
+            top: 0;
+            left: 0;
+            z-index: 1000;
+        }
+
+        .navbar i {
+            font-weight: bold;
+            margin-right: 25px;
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+
+        .navbar i:hover {
+            transform: scale(1.1);
+            color: #ffd700;
+        }
+
+        /* Page heading */
+        h1 {
+            margin-top: 104px;
+            margin-bottom: 35px;
+            font-size: 46px;
+            color: #f1b32e;
+            text-shadow: 0px 2px 2px #222222;
+            text-align: center;
+        }
+
+        /* Flash messages */
+        ul {
+            list-style-type: none;
+            padding: 0;
+            font-size: 16px;
+            color: #fffcfc;
+            margin-bottom: 10px;
+        }
+
+        /* Table styling */
+        table {
+            border-collapse: collapse;
+            width: 100%;
+            max-width: 1000px;
+            background: #ffffff;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            border-radius: 8px;
+            overflow: hidden;
+        }
+
+        th, td {
+            padding: 12px 15px;
+            text-align: center;
+        }
+
+        /* .full_path {
+            width: 40%;
+        } */
+
+        th {
+            background: #52a6dd;
+            color: white;
+            font-weight: bold;
+        }
+
+        tr:nth-child(even) {
+            background: #f9f9f9;
+        }
+
+        tr:hover {
+            background: #d0ebff;
+        }
+
+        input[type="checkbox"] {
+            transform: scale(1.2);
+            cursor: pointer;
+        }
+
+        /* Button */
+        button {
+            font-size: 18px;
+            font-weight: bold;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            background: linear-gradient(120deg, #3498db, #34c8db);
+            color: white;
+            padding: 15px 30px;
+            margin: 20px 0;
+            margin-bottom: 140px;
+            margin-top: 40px;
+            transition: background 0.3s, transform 0.2s;
+        }
+
+        button:hover {
+            background: #2980b9;
+            transform: scale(1.05);
+        }
+
+        /* Footer */
+        footer {
+            background: linear-gradient(120deg, #52a6dd, #52a6dd);
+            width: 100%;
+            color: white;
+            font-size: 16px;
+            font-weight: bold;
+            margin: 0;
+            padding: 10px 20px;
+            box-sizing: border-box;
+            text-align: center;
+            border-top: 1px solid rgba(255,255,255,0.3);
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            box-shadow: 0 -2px 5px rgba(0,0,0,0.1);
+        }
+        .destination_folder{
+            margin-bottom: 30px;
+        }
+
+    </style>
+</head>
+<body>
+  <nav class="navbar">
+    <ul>
+        <a href="/" style="color:white; margin-right:15px; text-decoration:none; font-size: 20px; font-weight: bold;" >Home</a>
+        <a href="/upload" style="color:white; margin-right:15px; text-decoration:none; font-size: 20px; font-weight: bold;" >Upload</a>
+        <a href="/main" style="color:white; margin-right:15px; text-decoration:none; font-size: 20px; font-weight: bold;">Browse Table</a>
+    </ul>
+  </nav>
+
+  <h1>XFS File Browser</h1>
+
+  {% with messages = get_flashed_messages() %}
+    {% if messages %}
+      <ul>
+        {% for message in messages %}
+          <li>{{ message }}</li>
+        {% endfor %}
+      </ul>
+    {% endif %}
+  {% endwith %}
+
+  <form id="filesForm">
+      <table>
+          <tr>
+              <th>Select</th>
+              <th>Filename</th>
+              <th class="full_path">Full Path</th>
+              <th>Inode</th>
+              <th>Type</th>
+              <th>Fsblock</th>
+              <th>Block count</th>
+          </tr>
+          {% for f in files %}
+          <tr>
+              <td>
+                  <input type="checkbox" name="files" value="{{ f['name'] }}|{{ f['fsblock'] }}|{{ f['block count'] }}">
+              </td>
+              <td>{{ f['name'] }}</td>
+              <td class="full_path">{{ f['path'] }}</td>
+              <td>{{ f['inode'] }}</td>
+              <td>{{ f['type'] }}</td>
+              <td>{{ f['fsblock'] }}</td>
+              <td>{{ f['block count'] }}</td>
+          </tr>
+          {% endfor %}
+      </table>
+      <button type="button" onclick="downloadEncryptedZip()">Download Selected Files</button>
+  </form>
+
+  <footer>
+    @xfsrecover
+  </footer>
+
+  <script>
+    async function downloadEncryptedZip() {
+        const btn = document.querySelector('#filesForm button');
+        const originalText = btn.textContent;
+        btn.textContent = "Decrypting and Downloading...";
+        btn.disabled = true;
+    
+        const keyB64 = sessionStorage.getItem('xfs_shared_key');
+        if (!keyB64) {
+            console.error("Encryption Key not found");
+            alert("Please re-upload the image.");
+            btn.textContent = originalText;
+            btn.disabled = false;
+            return;
+        } else {
+            console.log("Encryption key:", keyB64);
+        }
+    
+        const keyBytes = Uint8Array.from(atob(keyB64), c => c.charCodeAt(0));
+        const selected = [...document.querySelectorAll('input[type=checkbox][name=files]:checked')]
+                         .map(cb => cb.value);
+    
+        if (selected.length === 0) {
+            console.warn("No files selected for download.");
+            alert("No files selected!");
+            btn.textContent = originalText;
+            btn.disabled = false;
+            return;
+        }
+        console.log("Selected files:", selected);
+    
+        try {
+            const resp = await fetch('/download_encrypted_zip', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ files: selected })
+            });
+    
+            //console.log("Server response status:", resp.status);
+    
+            const result = await resp.json();
+            //console.log("Server response JSON:", result);
+    
+            let zipBytes;
+            if (result.encrypted) {
+                console.log("Encrypted ZIP received. Starting decryption...");
+                const iv = Uint8Array.from(atob(result.iv), c => c.charCodeAt(0));
+                const ciphertext = Uint8Array.from(atob(result.ciphertext), c => c.charCodeAt(0));
+                const key = await crypto.subtle.importKey('raw', keyBytes, 'AES-GCM', false, ['decrypt']);
+                zipBytes = await crypto.subtle.decrypt({ name: 'AES-GCM', iv: iv, tagLength: 128 }, key, ciphertext);
+                console.log("Decryption successfull");
+            } else {
+                console.warn("Received unencrypted ZIP file.");
+                zipBytes = Uint8Array.from(atob(result.ciphertext), c => c.charCodeAt(0)).buffer;
+            }
+    
+            const blob = new Blob([zipBytes], { type: 'application/zip' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = "recovered_files.zip";
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+            console.log("Downloaded successfully.");
+        } catch (err) {
+            console.error("Error during decrypt/download:", err);
+            alert("Error during decryption: " + err.message);
+        } finally {
+            btn.textContent = originalText;
+            btn.disabled = false;
+        }
+    }
+    </script>
+    
+
+</body>
+</html>
