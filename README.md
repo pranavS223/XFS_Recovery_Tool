@@ -27,29 +27,33 @@ Includes end-to-end AES-GCM encryption for secure upload and download of recover
 
 ## Steps
 **1] Clone the repository:**
+```bash
 git clone https://github.com/yourusername/xfs-recovery.git
 cd xfs-recovery
 PyCryptodome (pip install pycryptodome)
-
+```
 **2] Install dependencies:**
+```bash
 pip install flask pycryptodome
-
+```
 **3] Run the Flask server:**
+```bash
 python app.py
-
+```
 **4] Open your browser and go to:**
+```bash
 http://127.0.0.1:5000
-
+```
 
 ## How It Works
 **1. File Upload**
-Users upload an XFS image.
-Image is encrypted on the browser using AES-GCM before upload.
+- Users upload an XFS image.
+- Image is encrypted on the browser using AES-GCM before upload.
 
 **2. File Recovery**
-CLI & backend logic parses inode hex data and maps it to file blocks.
-Reconstructs deleted, non-overwritten files using XFS metadata.
+- CLI & backend logic parses inode hex data and maps it to file blocks.
+- Reconstructs deleted, non-overwritten files using XFS metadata.
 
 **3. Secure Download**
-Recovered files are zipped and encrypted server-side.
-Browser decrypts the ZIP before downloading.
+- Recovered files are zipped and encrypted server-side.
+- Browser decrypts the ZIP before downloading.
