@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>XFS Recovery</title>
+    <link rel="icon" href="{{ url_for('static', filename='xfs_favicon.png') }}" type="image/png">
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: #f4f4f9;
+            margin: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+        }
+
+       /* Navbar */
+       .navbar {
+            background: linear-gradient(120deg, #52a6dd, #52a6dd);
+            width: 100%;
+            color: white;
+            padding: 0px 20px;
+            font-size: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: flex-start;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            position: fixed;
+            top: 0;
+            left: 0;
+            z-index: 1000;
+            margin-left: 0px;
+        }
+
+        .navbar i {
+            font-weight: bold;
+            margin-right: 25px;
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+
+        .navbar i:hover {
+            transform: scale(1.1);
+            color: #ffd700;
+        }
+
+        /* Headings */
+        h1 {
+            margin-top: 60px;
+            margin-bottom: 10px;
+            font-size: 55px;
+            color: #333;
+            text-align: center;
+        }
+
+        h2 {
+            font-size: 45px;
+            color: #f1b32e;
+            text-shadow: 0px 2px 2px #333;
+            margin-bottom: 100px;
+            text-align: center;
+        }
+
+        /* Button */
+        button {
+            font-size: 25px;
+            font-weight: bold;
+            padding: 25px 45px;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            background: linear-gradient(120deg, #52a6dd, #42b4c4);
+            color: white;
+            box-shadow: 3px 3px 6px rgba(0,0,0,0.2);
+            transition: background 0.3s, transform 0.2s;
+            margin-bottom: 60px;
+        }
+
+        button:hover {
+            background-color: #2980b9;
+            transform: scale(1.05);
+        }
+
+        /* Footer */
+        footer {
+            background: linear-gradient(120deg, #52a6dd, #52a6dd);
+            width: 100%;
+            color: white;
+            font-size: 16px;
+            font-weight: bold;
+            margin: 0;
+            padding: 10px 20px;
+            text-align: center;
+            border-top: 1px solid rgba(255,255,255,0.3);
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            box-shadow: 0 -2px 5px rgba(0,0,0,0.1);
+        }
+
+        form {
+            text-align: center;
+        }
+        .hello{
+            background: #ffffff;
+            margin-top: 160px;
+            padding: 40px 75px;
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        ul{
+            list-style-type: none;
+            padding: 0;
+            font-size: 16px;
+            color: #fffcfc;
+            margin-bottom: 10px;
+        }
+
+
+    </style>
+</head>
+<body>
+    <nav class="navbar">
+        <ul>
+            <a href="/" style="color:white; margin-right:15px; text-decoration:none; font-size: 20px; font-weight: bold;" >Home</a>
+            <a href="/upload" style="color:white; margin-right:15px; text-decoration:none; font-size: 20px; font-weight: bold;" >Upload</a>
+            <a href="/main" style="color:white; margin-right:15px; text-decoration:none; font-size: 20px; font-weight: bold;">Browse Table</a>
+        </ul>
+      </nav>
+    <div class="hello">
+
+    <h1>XFS Filesystem</h1>
+    <h2>Recover Permanently Deleted Data</h2>
+
+    <form action="{{ url_for('upload') }}">
+        <button type="submit">Continue</button>
+    </form>
+   </div>
+    <footer>
+        @xfsrecover
+    </footer>
+</body>
+</html>
+
