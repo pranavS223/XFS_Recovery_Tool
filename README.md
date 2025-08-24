@@ -4,26 +4,26 @@ A CLI tool and web application to recover permanently deleted, non-overwritten f
 Includes end-to-end AES-GCM encryption for secure upload and download of recovered files.
 
 ## Features
-**Recovery of Permanently Deleted Files –** Parses raw disk hex data to reconstruct inode structures and extract file metadata.
-**Metadata Extraction –** Retrieves file names, sizes, extents, and paths from XFS inode data.
-**Web Interface –** Flask-based UI to upload XFS images and perform recovery visually.
-**End-to-End Encryption –**
-- Client-side encryption of uploaded images via WebCrypto API & Diffie–Hellman key exchange.
-- Server-side decryption for processing and secure re-encryption of recovered files.
-- Browser-based decryption of recovered ZIP files before download.
+- **Recovery of Permanently Deleted Files –** Parses raw disk hex data to reconstruct inode structures and extract file metadata.
+- **Metadata Extraction –** Retrieves file names, sizes, extents, and paths from XFS inode data.
+- **Web Interface –** Flask-based UI to upload XFS images and perform recovery visually.
+- **End-to-End Encryption –**
+-- Client-side encryption of uploaded images via WebCrypto API & Diffie–Hellman key exchange.
+-- Server-side decryption for processing and secure re-encryption of recovered files.
+-- Browser-based decryption of recovered ZIP files before download.
 
 ## Technologies Used
-**Programming Languages:** C, Python, JavaScript
-**Frameworks:** Flask
-**Encryption:** AES-GCM (WebCrypto API, PyCryptodome)
-**Filesystem Tools:** XFSProgs
-**Frontend:** HTML, CSS
+- **Programming Languages:** C, Python, JavaScript
+- **Frameworks:** Flask
+- **Encryption:** AES-GCM (WebCrypto API, PyCryptodome)
+- **Filesystem Tools:** XFSProgs
+- **Frontend:** HTML, CSS
 
 ## Installation & Setup
 **Prerequisites**
-Python 3.x
-Flask
-XFSProgs (for low-level operations)
+- Python 3.x
+- Flask
+- XFSProgs (for low-level operations)
 
 ## Steps
 **1] Clone the repository:**
