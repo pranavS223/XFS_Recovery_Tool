@@ -8,9 +8,9 @@ Includes end-to-end AES-GCM encryption for secure upload and download of recover
 **Metadata Extraction –** Retrieves file names, sizes, extents, and paths from XFS inode data.
 **Web Interface –** Flask-based UI to upload XFS images and perform recovery visually.
 **End-to-End Encryption –**
-Client-side encryption of uploaded images via WebCrypto API & Diffie–Hellman key exchange.
-Server-side decryption for processing and secure re-encryption of recovered files.
-Browser-based decryption of recovered ZIP files before download.
+- Client-side encryption of uploaded images via WebCrypto API & Diffie–Hellman key exchange.
+- Server-side decryption for processing and secure re-encryption of recovered files.
+- Browser-based decryption of recovered ZIP files before download.
 
 ## Technologies Used
 **Programming Languages:** C, Python, JavaScript
