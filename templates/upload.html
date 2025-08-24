@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Upload XFS Image</title>
+  <link rel="icon" href="{{ url_for('static', filename='xfs_favicon.png') }}" type="image/png">
+  <style>
+    body { font-family: Arial, sans-serif; background: #f4f4f9; display: flex; flex-direction: column; align-items: center; min-height: 100vh; margin: 0; }
+    .navbar { background: linear-gradient(120deg, #52a6dd, #52a6dd); width: 100%; color: white; padding: 0px 20px; font-size: 20px; display: flex; align-items: center; justify-content: flex-start; box-shadow: 0 4px 6px rgba(0,0,0,0.1); position: fixed; top: 0; left: 0; z-index: 1000; }
+    .form_body { background: #ffffff; margin-top: 30px; padding: 60px 85px; border-radius: 10px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); display: flex; flex-direction: column; align-items: center; }
+    input[type=file], input[type=number] { font-size: 16px; margin: 10px 0; padding: 10px; width: 100%; border: 1px solid #ccc; border-radius: 5px; }
+    button { font-size: 18px; font-weight: bold; border: none; border-radius: 5px; cursor: pointer; background: linear-gradient(120deg, #52a6dd, #35b3c4); color: white; padding: 15px 25px; margin-top: 20px; transition: background 0.3s, transform 0.2s; }
+    button:hover { background: #2980b9; transform: scale(1.05); }
+    ul { list-style-type: none; padding: 0; font-size: 16px; color: white; margin-bottom: 10px; }
+    footer { background: linear-gradient(120deg, #52a6dd, #52a6dd); width: 100%; color: white; font-size: 16px; font-weight: bold; margin: 0; padding: 10px 20px; box-sizing: border-box; text-align: center; border-top: 1px solid rgba(255,255,255,0.3); position: fixed; bottom: 0; left: 0; box-shadow: 0 -2px 5px rgba(0,0,0,0.1); }
+    .message {
+    margin-bottom: 30px;
+    padding: 15px 30px;
+    border-radius: 10px;
+    background: #e3f2fd; /* light blue background */
+    border: 1px solid #90caf9;
+    color: #0d47a1;
+    font-size: 16px;
+    line-height: 1.5;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+    }
+    .message p {
+    font-weight: bold;
+    color: #1565c0;
+    margin-bottom: 8px;
+    }
+    .message strong {
+    color: #0f75b0; /* A deep teal/blue color */
+    font-weight: bold;
+    }
+    h1 {
+            margin-top: 104px;
+            margin-bottom: 5px;
+            font-size: 40px;
+            color: #f1b32e;
+            text-shadow: 0px 2px 2px #222222;
+            text-align: center;
+        }
+</style>
+</head>
+<body>
+  <nav class="navbar">
+    <ul>
+      <a href="/" style="color:white; margin-right:15px; text-decoration:none; font-size: 20px; font-weight: bold;">Home</a>
+      <a href="/upload" style="color:white; margin-right:15px; text-decoration:none; font-size: 20px; font-weight: bold;">Upload</a>
+      <a href="/main" style="color:white; margin-right:15px; text-decoration:none; font-size: 20px; font-weight: bold;">Browse Table</a>
+    </ul>
+  </nav>
+
+  <h1>Select Your XFS Image</h1>
+  {% with messages = get_flashed_messages() %}
+    {% if messages %}
+      <ul>
+        {% for message in messages %}
+          <li>{{ message }}</li>
+        {% endfor %}
+      </ul>
+    {% endif %}
+  {% endwith %}
+
+  <form action="" method="post" enctype="multipart/form-data" class="form_body" id="uploadForm">
+    <div class="message">
+    <p><bold>Steps to find Inode number:</bold></p>
+    1. Mount filesystem on a folder in your local machine <br>
+    2. Use the command <strong>"ls -l /path/to/image.img"</strong><br>
+    3. You will get the inode number, fill it below <br>
+  </div> <br> <br>
+    <input type="file" name="image" accept=".img" required>
+    <br>
+    <input type="number" name="inode" placeholder="Enter root inode (default 128)" value="128" required>
+    <br>
+
+    <input type="hidden" name="ga" id="ga_field">
+    <input type="hidden" name="iv" id="iv_field">
+    <button type="submit" id="submitBtn">Upload</button>
+  </form>
+
+  <footer class="footer">@xfsrecover</footer>
+
+  <script>
+    console.log("Upload script loaded");
+
+
+    const P_HEX = "{{ p_hex }}";
+    const G_DEC = "{{ g_dec }}";
+    const G_B_MOD_P_DEC = "{{ gb_mod_p }}";
+
+
+    function hexToBigInt(hex) { return BigInt('0x' + hex); }
+    function decToBigInt(dec) { return BigInt(dec); }
+    function bigModExp(base, exp, mod) {
+      let result = 1n, b = base % mod, e = exp;
+      while (e > 0n) {
+        if (e & 1n) result = (result * b) % mod;
+        b = (b * b) % mod;
+        e >>= 1n;
+      }
+      return result;
+    }
+    function bigIntToUint8Array(bi) {
+      let hex = bi.toString(16);
+      if (hex.length % 2) hex = "0" + hex;
+      const out = new Uint8Array(hex.length / 2);
+      for (let i = 0; i < out.length; i++) {
+        out[i] = parseInt(hex.substr(i * 2, 2), 16);
+      }
+      return out;
+    }
+    async function sha256(bytesU8) {
+      const h = await crypto.subtle.digest('SHA-256', bytesU8);
+      return new Uint8Array(h);
+    }
+    async function aesGcmEncrypt(keyRaw32, iv12, plaintextU8) {
+      const key = await crypto.subtle.importKey('raw', keyRaw32, 'AES-GCM', false, ['encrypt']);
+      const ct = await crypto.subtle.encrypt({ name: 'AES-GCM', iv: iv12, tagLength: 128 }, key, plaintextU8);
+      return new Uint8Array(ct); 
+    }
+    function u8ToBase64(u8) {
+      let s = ""; for (let i = 0; i < u8.length; i++) s += String.fromCharCode(u8[i]);
+      return btoa(s);
+    }
+
+    const form = document.getElementById('uploadForm');
+    const submitBtn = document.getElementById('submitBtn');
+
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      console.log("[DEBUG] Form submission intercepted");
+
+      const fileInput = form.querySelector('input[type=file][name=image]');
+      const inodeInput = form.querySelector('input[type=number][name=inode]');
+      if (!fileInput.files || !fileInput.files[0]) {
+        alert("Please select a file first!");
+        return;
+      }
+      const file = fileInput.files[0];
+      console.log("[DEBUG] File selected:", file.name, "Size:", file.size);
+
+
+      const originalText = submitBtn.textContent;
+      submitBtn.textContent = "Encrypting and Uploading...";
+      submitBtn.disabled = true;
+
+      try {
+
+        const p = hexToBigInt(P_HEX);
+        const g = decToBigInt(G_DEC);
+        const g_b_mod_p = decToBigInt(G_B_MOD_P_DEC);
+
+
+        const aBytes = new Uint8Array(32);
+        crypto.getRandomValues(aBytes);
+        let a = 0n; aBytes.forEach(b => { a = (a << 8n) + BigInt(b); });
+
+        const g_a_mod_p = bigModExp(g, a, p);
+        const shared = bigModExp(g_b_mod_p, a, p);
+
+        const sharedBytes = bigIntToUint8Array(shared);
+        const key32 = await sha256(sharedBytes);
+
+
+        sessionStorage.setItem('xfs_shared_key', u8ToBase64(new Uint8Array(key32)));
+
+
+        const iv = new Uint8Array(12);
+        crypto.getRandomValues(iv);
+
+        console.log("[DEBUG] g^a mod p (dec):", g_a_mod_p.toString(10));
+        console.log("[DEBUG] IV (b64):", u8ToBase64(iv));
+        console.log("[DEBUG] Key[0..7] (hex):", Array.from(key32.slice(0,8)).map(x=>x.toString(16).padStart(2,'0')).join(''));
+
+
+        const fileBuf = new Uint8Array(await file.arrayBuffer());
+        const ciphertext = await aesGcmEncrypt(key32, iv, fileBuf);
+        console.log("[DEBUG] Ciphertext length:", ciphertext.length);
+
+        const fd = new FormData();
+
+        fd.append('image', new Blob([ciphertext], { type: 'application/octet-stream' }), file.name);
+        fd.append('inode', inodeInput.value || '128');
+        fd.append('ga', g_a_mod_p.toString(10));
+        fd.append('iv', u8ToBase64(iv));         
+
+        document.getElementById('ga_field').value = g_a_mod_p.toString(10);
+        document.getElementById('iv_field').value = u8ToBase64(iv);
+
+        console.log("[DEBUG] Sending encrypted data to server...");
+        const resp = await fetch(window.location.href, { method: 'POST', body: fd });
+
+        if (resp.redirected) {
+          window.location.href = resp.url; 
+        } else {
+          const text = await resp.text();
+          console.log("[DEBUG] Server response (no redirect):", text.slice(0,300));
+          window.location.reload();
+        }
+      } catch (err) {
+        console.error("[DEBUG] Encryption/Upload error:", err);
+        alert("Error during encryption/upload: " + err.message);
+        submitBtn.textContent = originalText;
+        submitBtn.disabled = false;
+      }
+    });
+  </script>
+</body>
+</html>
